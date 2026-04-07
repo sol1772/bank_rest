@@ -1,0 +1,6 @@
+# compiler output
+target/
+
+# idea project files
+.idea/
+*.iml
