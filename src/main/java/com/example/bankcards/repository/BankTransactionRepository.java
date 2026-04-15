@@ -1,7 +1,7 @@
 package com.example.bankcards.repository;
 
 import com.example.bankcards.entity.BankTransaction;
-import com.example.bankcards.entity.enums.CardStatus;
+import com.example.bankcards.entity.enums.TransactionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,9 +14,9 @@ public interface BankTransactionRepository extends JpaRepository<BankTransaction
 
     Page<BankTransaction> findByToCardId(Long toCardId, Pageable pageable);
 
-    Optional<BankTransaction> findByTransactionReference(String transactionReference);
-
     Page<BankTransaction> findByAmount(BigDecimal amount, Pageable pageable);
 
-    Page<BankTransaction> findByStatus(CardStatus status, Pageable pageable);
+    Page<BankTransaction> findByStatus(TransactionStatus status, Pageable pageable);
+
+    Optional<BankTransaction> findByTransactionReference(String transactionReference);
 }

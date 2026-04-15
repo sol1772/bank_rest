@@ -7,12 +7,33 @@ import org.springframework.data.domain.Sort;
 
 @Data
 public class PageRequestDto {
-    private Integer pageNumber = 0;
-    private Integer pageSize = 10;
-    private Sort.Direction sort = Sort.Direction.ASC;
-    private String sortByColumn = "id";
+    private Integer page = 0;
+    private Integer size = 20;
+    private String direction = "ASC";
+    private String sortBy = "id";
 
-    public Pageable getPageable() {
-        return PageRequest.of(this.pageNumber, this.pageSize, this.sort, this.sortByColumn);
+    public int getPage() {
+        return page != null && page >= 0 ? page : 0;
+    }
+
+    public int getSize() {
+        return size != null && size > 0 ? size : 20;
+    }
+
+    public String getSortBy() {
+        return sortBy != null ? sortBy : "id";
+    }
+
+    public Sort.Direction getDirection() {
+        try {
+            return Sort.Direction.valueOf(direction.toUpperCase());
+        } catch (Exception e) {
+            return Sort.Direction.ASC;
+        }
+    }
+
+    public Pageable toPageable() {
+        return PageRequest.of(getPage(), getSize(), Sort.by(getDirection(), getSortBy())
+        );
     }
 }

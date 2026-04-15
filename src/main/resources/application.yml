@@ -1,13 +1,23 @@
 #
 # application.yml — главный конфигурационный файл Spring Boot.
+#Что нужно сделать:
+#  - Указать настройки подключения к базе данных.
+#  - Указать порт приложения.
+#  - Настроить параметры безопасности и JWT.
+#  - Включить Swagger UI.
+
 server:
   port: 8080
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/bankrest
-    username: root
-    password: root
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    #    username: root
+    #    password: root
     driver-class-name: org.postgresql.Driver
+  config:
+    import: optional:file:.env[.properties]
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,10 +25,7 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
-
-
-Что нужно сделать:
-  - Указать настройки подключения к базе данных.
-  - Указать порт приложения.
-  - Настроить параметры безопасности и JWT.
-  - Включить Swagger UI.
+application:
+  jwt:
+    access-token-expiration: 600000
+    refresh-token-expiration: 86400000
