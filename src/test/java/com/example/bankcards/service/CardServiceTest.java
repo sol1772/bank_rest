@@ -3,7 +3,7 @@ package com.example.bankcards.service;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.enums.CardStatus;
-import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.CryptoUtil;
@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CardServiceTest {
-
     @Mock
     private CardRepository cardRepository;
 
@@ -74,7 +73,7 @@ class CardServiceTest {
         when(userRepository.findById(holderId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThrows(AppRuntimeException.class, () -> cardService.createCard(card, holderId));
+        assertThrows(ResourceNotFoundException.class, () -> cardService.createCard(card, holderId));
 
         verify(cardRepository, never()).save(any());
     }

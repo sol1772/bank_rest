@@ -7,6 +7,7 @@ import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.entity.enums.TransactionStatus;
 import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.BankTransactionRepository;
 import com.example.bankcards.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class BankTransactionService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public BankTransaction getById(Long id) {
         return bankTransactionRepository.findById(id)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Bank transaction with id %d does not exist", id)));
     }
 
@@ -63,7 +64,7 @@ public class BankTransactionService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public BankTransaction getByTransactionReference(String transactionReference) {
         return bankTransactionRepository.findByTransactionReference(transactionReference)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Bank transaction with reference %s does not exist", transactionReference)));
     }
 
@@ -71,9 +72,9 @@ public class BankTransactionService {
     public void fundTransfer(BankTransaction transaction, Long fromCardId, Long toCardId, BigDecimal amount) {
         try {
             Card fromCard = cardRepository.findByIdForUpdate(fromCardId)
-                    .orElseThrow(() -> new AppRuntimeException("Source card not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Source card not found"));
             Card toCard = cardRepository.findByIdForUpdate(toCardId)
-                    .orElseThrow(() -> new AppRuntimeException("Recipient card not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Recipient card not found"));
 
             if (!fromCard.getHolder().equals(toCard.getHolder())) {
                 throw new AppRuntimeException("The holders of the source and recipient cards do not match.");

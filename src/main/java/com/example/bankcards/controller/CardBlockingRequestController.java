@@ -2,10 +2,8 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.PageRequestDto;
 import com.example.bankcards.entity.CardBlockingRequest;
-import com.example.bankcards.exception.AppRuntimeException;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.CardBlockingRequestService;
-import com.example.bankcards.util.AppErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +28,13 @@ public class CardBlockingRequestController {
         return ResponseEntity.ok().body(requestsPage);
     }
 
+    @GetMapping("/{id}")
+    @Operation(summary = "Get card blocking request by ID (ADMIN)")
+    public ResponseEntity<CardBlockingRequest> getCardBlockingRequest(@PathVariable Long id) {
+        CardBlockingRequest cardBlockingRequest = cardBlockingRequestService.getById(id);
+        return ResponseEntity.ok(cardBlockingRequest);
+    }
+
     // ===================== CREATE =====================
     @PostMapping("/{id}")
     @Operation(summary = "Create a card blocking request (USER)")
@@ -38,12 +43,5 @@ public class CardBlockingRequestController {
         String username = userDetails.getUsername();
         cardBlockingRequestService.createCardBlockRequest(cardId, username);
         return ResponseEntity.noContent().build();
-    }
-
-    // ===================== EXCEPTIONS =====================
-    @ExceptionHandler
-    private ResponseEntity<AppErrorResponse> handleException(AppRuntimeException e) {
-        AppErrorResponse response = new AppErrorResponse(e.getMessage(), System.currentTimeMillis());
-        return ResponseEntity.badRequest().body(response);
     }
 }

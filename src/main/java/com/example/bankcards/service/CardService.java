@@ -7,6 +7,7 @@ import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.util.CryptoUtil;
@@ -41,7 +42,7 @@ public class CardService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public CardDto getCardById(Long id) {
         Card card = cardRepository.findById(id)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Card with id %d does not exist", id)));
         return toDtoDecryptedMasked(card);
     }
@@ -55,7 +56,7 @@ public class CardService {
 
     public Card getCardByIdAndUser(Long id, String username) {
         return cardRepository.findByIdAndHolder_Username(id, username)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Card with id %d and holder %s does not exist", id, username)));
     }
 
@@ -67,7 +68,7 @@ public class CardService {
 
     public BigDecimal getCardBalance(Long id, String username) {
         Card card = cardRepository.findByIdAndHolder_Username(id, username)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Card with id %d and holder %s does not exist", id, username)));
         return card.getBalance();
     }
@@ -84,7 +85,7 @@ public class CardService {
             card.setId(null);
         }
         User holder = userRepository.findById(holderId)
-                .orElseThrow(() -> new AppRuntimeException(String.format("User with id %d does not exist", holderId)));
+                .orElseThrow(() -> new ResourceNotFoundException(String.format("User with id %d does not exist", holderId)));
         card.setHolder(holder);
         card.setStatus(CardStatus.ACTIVE);
 
@@ -99,7 +100,7 @@ public class CardService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public void activateCard(Long id) {
         Card card = cardRepository.findByIdForUpdate(id)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Card with id %d does not exist", id)));
         if (card.getStatus() != CardStatus.ACTIVE) {
             card.setStatus(CardStatus.ACTIVE);
@@ -114,7 +115,7 @@ public class CardService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public void blockCard(Long id) {
         Card card = cardRepository.findByIdForUpdate(id)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Card with id %d does not exist", id)));
         if (card.getStatus() != CardStatus.BLOCKED) {
             card.setStatus(CardStatus.BLOCKED);
@@ -129,7 +130,7 @@ public class CardService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public void deleteCard(Long id) {
         if (!cardRepository.existsById(id)) {
-            throw new AppRuntimeException(String.format("Card with id %d does not exist", id));
+            throw new ResourceNotFoundException(String.format("Card with id %d does not exist", id));
         }
         cardRepository.deleteById(id);
         log.info("Card with id {} is deleted", id);

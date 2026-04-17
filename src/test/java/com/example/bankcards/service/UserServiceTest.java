@@ -3,6 +3,7 @@ package com.example.bankcards.service;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.enums.Role;
 import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -190,8 +191,7 @@ class UserServiceTest {
         when(userRepository.existsById(id)).thenReturn(false);
 
         // when & then
-        assertThrows(AppRuntimeException.class,
-                () -> userService.deleteUser(id));
+        assertThrows(ResourceNotFoundException.class, () -> userService.deleteUser(id));
 
         verify(userRepository).existsById(id);
         verify(userRepository, never()).deleteById(any());

@@ -4,13 +4,15 @@ import com.example.bankcards.entity.enums.CardStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
 
 @Data
-@Builder
+@RequiredArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CardDto {
     private final String number;
     private final UserDto holder;

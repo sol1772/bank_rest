@@ -7,11 +7,9 @@ import com.example.bankcards.dto.request.ChangePasswordRequest;
 import com.example.bankcards.dto.request.CreateUserRequest;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.enums.Role;
-import com.example.bankcards.exception.AppRuntimeException;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.UserService;
 import com.example.bankcards.service.validators.UserValidator;
-import com.example.bankcards.util.AppErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -55,7 +53,7 @@ public class UserController {
         return ResponseEntity.ok(userMapper.toDto(user));
     }
 
-    @GetMapping("/api/users/me")
+    @GetMapping("/me")
     @Operation(summary = "Get own profile (USER)")
     public ResponseEntity<UserDto> getProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok(userService.getProfile(userDetails.getUsername()));
@@ -107,12 +105,5 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // ===================== EXCEPTIONS =====================
-    @ExceptionHandler
-    private ResponseEntity<AppErrorResponse> handleException(AppRuntimeException e) {
-        AppErrorResponse response = new AppErrorResponse(e.getMessage(), System.currentTimeMillis());
-        return ResponseEntity.badRequest().body(response);
     }
 }

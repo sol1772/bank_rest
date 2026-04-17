@@ -10,8 +10,8 @@ Filtering and paginated search of users, cards, bank transactions, data encrypti
 Error handling, validation of incoming data, Unit-tests, logging.
 
 **Stack used:**  
-JDK 21, REST API, Spring 6 (Boot 3, Data, Security, Web), JPA/Hibernate, Tomcat 10, PostgreSQL, JUnit 5, Maven, Git,
-Docker, IntelliJIDEA.  
+JDK 25, REST API, Spring 6 (Boot 4, Data, Security, Web), JPA/Hibernate, Tomcat 10, PostgreSQL, JUnit 5, Maven, Git,
+Docker, IntelliJ IDEA.  
 _  
 **Maksyutov Salavat**
 ___
@@ -28,8 +28,8 @@ ___
 Обработка ошибок, валидация входящих данных, Unit-тестирование, логирование операций.
 
 **Используемый стек:**  
-JDK 21, REST API, Spring 6 (Boot 3, Data, Security, Web), JPA/Hibernate, Tomcat 10, PostgreSQL, JUnit 5, Maven, Git,
-Docker, IntelliJIDEA.  
+JDK 25, REST API, Spring 6 (Boot 4, Data, Security, Web), JPA/Hibernate, Tomcat 10, PostgreSQL, JUnit 5, Maven, Git,
+Docker, IntelliJ IDEA.  
 _  
 **Максютов Салават**
   

@@ -5,6 +5,7 @@ import com.example.bankcards.entity.CardBlockingRequest;
 import com.example.bankcards.entity.enums.CardBlockingRequestStatus;
 import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.CardBlockingRequestRepository;
 import com.example.bankcards.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,13 @@ public class CardBlockingRequestService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public Page<CardBlockingRequest> getAll(Pageable pageable) {
         return cardBlockingRequestRepository.findAll(pageable);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public CardBlockingRequest getById(Long id) {
+        return cardBlockingRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        String.format("Card blocking request with id %d does not exist", id)));
     }
 
     @Transactional

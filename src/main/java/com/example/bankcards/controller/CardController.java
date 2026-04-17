@@ -5,11 +5,9 @@ import com.example.bankcards.dto.PageRequestDto;
 import com.example.bankcards.dto.mappers.CardMapper;
 import com.example.bankcards.dto.request.CreateCardRequest;
 import com.example.bankcards.entity.Card;
-import com.example.bankcards.exception.AppRuntimeException;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.validators.CardValidator;
-import com.example.bankcards.util.AppErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +46,7 @@ public class CardController {
     @GetMapping("/{id}")
     @Operation(summary = "Get card by ID (ADMIN)")
     public ResponseEntity<CardDto> getCard(@PathVariable Long id) {
-        CardDto cardDto = cardService.getCardById(id);
-        if (cardDto == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(cardDto);
+        return ResponseEntity.ok(cardService.getCardById(id));
     }
 
     @GetMapping("/me")
@@ -125,12 +119,5 @@ public class CardController {
     public ResponseEntity<Void> deleteCard(@PathVariable long id) {
         cardService.deleteCard(id);
         return ResponseEntity.noContent().build();
-    }
-
-    // ===================== EXCEPTIONS =====================
-    @ExceptionHandler
-    private ResponseEntity<AppErrorResponse> handleException(AppRuntimeException e) {
-        AppErrorResponse response = new AppErrorResponse(e.getMessage(), System.currentTimeMillis());
-        return ResponseEntity.badRequest().body(response);
     }
 }

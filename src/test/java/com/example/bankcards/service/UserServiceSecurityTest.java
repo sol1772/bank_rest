@@ -23,7 +23,6 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class UserServiceSecurityTest {
-
     @Autowired
     private UserService userService;
 

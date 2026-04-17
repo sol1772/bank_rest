@@ -5,6 +5,7 @@ import com.example.bankcards.dto.mappers.UserMapper;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.enums.Role;
 import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +31,7 @@ public class UserService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("User with id %d does not exist", id)));
     }
 
@@ -41,7 +42,7 @@ public class UserService {
 
     public UserDto getProfile(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new AppRuntimeException("User not found: " + username));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
         return userMapper.toDto(user);
     }
 
@@ -63,7 +64,7 @@ public class UserService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new AppRuntimeException(String.format("User with id %d does not exist", id));
+            throw new ResourceNotFoundException(String.format("User with id %d does not exist", id));
         }
         userRepository.deleteById(id);
         log.info("User with id {} is deleted", id);
@@ -73,7 +74,7 @@ public class UserService {
     @PreAuthorize("hasAuthority('ADMIN')")
     public User changeRole(Long id, Role newRole) {
         User user = userRepository.findByIdForUpdate(id)
-                .orElseThrow(() -> new AppRuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("User with id %d does not exist", id)));
         user.setRole(newRole);
         User updated = userRepository.save(user);

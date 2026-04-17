@@ -3,6 +3,7 @@ package com.example.bankcards.controller;
 import com.example.bankcards.dto.BankTransactionDto;
 import com.example.bankcards.dto.PageRequestDto;
 import com.example.bankcards.dto.mappers.BankTransactionMapper;
+import com.example.bankcards.dto.request.TransferRequest;
 import com.example.bankcards.entity.BankTransaction;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.enums.TransactionStatus;
@@ -10,7 +11,6 @@ import com.example.bankcards.exception.AppRuntimeException;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.BankTransactionService;
 import com.example.bankcards.service.validators.BankTransactionValidator;
-import com.example.bankcards.util.AppErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,27 +53,25 @@ public class BankTransactionController {
     // ===================== CREATE =====================
     @PostMapping("/transfer")
     @Operation(summary = "Create transaction (USER)")
-    public ResponseEntity<BankTransactionDto> transferFunds(@RequestBody Card fromCard, @RequestBody Card toCard,
-                                                            @RequestParam BigDecimal amount,
+    public ResponseEntity<BankTransactionDto> transferFunds(@RequestBody TransferRequest request,
                                                             @AuthenticationPrincipal CustomUserDetails userDetails,
                                                             BindingResult bindingResult) {
+        Card fromCard = request.getFromCard();
+        Card toCard = request.getToCard();
+        BigDecimal amount = request.getAmount();
+
         if (!fromCard.getHolder().getUsername().equals(userDetails.getUsername())) {
             throw new AppRuntimeException("User does not match source card holder!");
         }
+
         String transactionId = UUID.randomUUID().toString();
         BankTransaction transaction = new BankTransaction(transactionId, fromCard, toCard, amount, TransactionStatus.PENDING);
         bankTransactionValidator.validate(transaction, bindingResult);
         if (bindingResult.hasErrors()) {
             returnErrorsToClient(bindingResult);
         }
+
         bankTransactionService.fundTransfer(transaction, fromCard.getId(), toCard.getId(), amount);
         return ResponseEntity.noContent().build();
-    }
-
-    // ===================== EXCEPTIONS =====================
-    @ExceptionHandler
-    private ResponseEntity<AppErrorResponse> handleException(AppRuntimeException e) {
-        AppErrorResponse response = new AppErrorResponse(e.getMessage(), System.currentTimeMillis());
-        return ResponseEntity.badRequest().body(response);
     }
 }

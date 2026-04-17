@@ -3,10 +3,7 @@ package com.example.bankcards.entity;
 import com.example.bankcards.entity.enums.Role;
 import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.XmlTransient;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.NaturalId;
 
 import java.util.Objects;
@@ -17,6 +14,7 @@ import java.util.Objects;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

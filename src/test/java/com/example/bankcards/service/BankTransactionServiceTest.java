@@ -7,6 +7,7 @@ import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.entity.enums.Role;
 import com.example.bankcards.entity.enums.TransactionStatus;
 import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.exception.ResourceNotFoundException;
 import com.example.bankcards.repository.BankTransactionRepository;
 import com.example.bankcards.repository.CardRepository;
 import org.junit.jupiter.api.Test;
@@ -187,7 +188,7 @@ class BankTransactionServiceTest {
         when(cardRepository.findByIdForUpdate(fromId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThrows(AppRuntimeException.class,
+        assertThrows(ResourceNotFoundException.class,
                 () -> transactionService.fundTransfer(new BankTransaction(), fromId, toId, BigDecimal.TEN));
 
         verify(cardRepository, never()).save(any());
