@@ -62,7 +62,7 @@ class AuthServiceTest {
 
         AuthResponse response = authService.login(req);
 
-        assertThat(response.getToken()).isEqualTo("login-jwt");
+        assertThat(response.getToken()).isEqualTo("Bearer login-jwt");
         assertThat(response.getUsername()).isEqualTo("testUser");
     }
 

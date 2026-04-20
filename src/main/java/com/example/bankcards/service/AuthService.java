@@ -7,11 +7,15 @@ import com.example.bankcards.repository.UserRepository;
 import com.example.bankcards.security.CustomUserDetailsService;
 import com.example.bankcards.security.JwtService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -21,12 +25,48 @@ public class AuthService {
     private final JwtService jwtService;
 
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
-        );
+        log.info("Login attempt for user: {}", request.getUsername());
+
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+
+            log.info("Authentication successful for user: {}", request.getUsername());
+
+        } catch (AuthenticationException ex) {
+            log.warn("Authentication failed for user: {}", request.getUsername());
+            throw ex; // 401
+        }
+
         UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
-        String token = jwtService.generateAccessToken(userDetails);
-        User user = userRepository.findByUsername(request.getUsername()).orElseThrow();
-        return new AuthResponse(token, user.getUsername(), user.getRole().name());
+        log.debug("Loaded userDetails: {}", userDetails.getUsername());
+
+        String token;
+        try {
+            token = jwtService.generateAccessToken(userDetails);
+            log.info("JWT generated for user: {}", request.getUsername());
+        } catch (Exception ex) {
+            log.error("JWT generation failed for user: {}", request.getUsername(), ex);
+            throw ex;
+        }
+
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> {
+                    log.error("User not found in DB after authentication: {}", request.getUsername());
+                    return new RuntimeException("User not found");
+                });
+
+        log.info("Login successful for user: {}", user.getUsername());
+
+        return new AuthResponse(
+                "Bearer " + token,
+                user.getUsername(),
+                user.getRole().name()
+        );
     }
+
 }

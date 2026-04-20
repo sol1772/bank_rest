@@ -4,18 +4,20 @@ import com.example.bankcards.dto.PageRequestDto;
 import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.mappers.UserMapper;
 import com.example.bankcards.dto.request.ChangePasswordRequest;
+import com.example.bankcards.dto.request.ChangeRoleRequest;
 import com.example.bankcards.dto.request.CreateUserRequest;
 import com.example.bankcards.entity.User;
-import com.example.bankcards.entity.enums.Role;
 import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.UserService;
 import com.example.bankcards.service.validators.UserValidator;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -24,6 +26,7 @@ import java.net.URI;
 
 import static com.example.bankcards.util.ErrorsUtil.returnErrorsToClient;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/users")
@@ -40,6 +43,7 @@ public class UserController {
             pageRequestDto.setSortBy("username");
         }
         Page<UserDto> usersPage = userService.getAll(pageRequestDto.toPageable());
+        log.info(String.valueOf(SecurityContextHolder.getContext().getAuthentication()));
         return ResponseEntity.ok(usersPage);
     }
 
@@ -63,7 +67,7 @@ public class UserController {
     @PostMapping
     @Operation(summary = "Create user (ADMIN)")
     public ResponseEntity<UserDto> addUser(@Valid @RequestBody CreateUserRequest request, BindingResult bindingResult) {
-        User user = userMapper.toEntity(request.getUser());
+        User user = userMapper.requestToEntity(request);
         userValidator.validate(user, bindingResult);
         if (bindingResult.hasErrors()) {
             returnErrorsToClient(bindingResult);
@@ -80,14 +84,14 @@ public class UserController {
     // ===================== UPDATE =====================
     @PatchMapping("/{id}/role")
     @Operation(summary = "Change role (ADMIN)")
-    public ResponseEntity<UserDto> changeRole(@PathVariable Long id, @RequestBody Role newRole) {
-        User updated = userService.changeRole(id, newRole);
+    public ResponseEntity<UserDto> changeRole(@PathVariable Long id, @Valid @RequestBody ChangeRoleRequest request) {
+        User updated = userService.changeRole(id, request.getRole());
         return ResponseEntity.ok(userMapper.toDto(updated));
     }
 
     @PatchMapping("/{id}/password")
     @Operation(summary = "Change password (USER)")
-    public ResponseEntity<UserDto> changePassword(@PathVariable Long id, @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<UserDto> changePassword(@PathVariable Long id, @Valid @RequestBody ChangePasswordRequest request) {
         User updated = userService.changePassword(id, request.getOldPassword(), request.getNewPassword());
         return ResponseEntity.ok(userMapper.toDto(updated));
     }

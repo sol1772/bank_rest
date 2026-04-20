@@ -17,7 +17,7 @@ import java.time.YearMonth;
 @Slf4j
 @Transactional(readOnly = true)
 public class CardValidator implements Validator {
-    private CardRepository cardRepository;
+    private final CardRepository cardRepository;
 
     @Override
     public boolean supports(@Nonnull Class<?> clazz) {

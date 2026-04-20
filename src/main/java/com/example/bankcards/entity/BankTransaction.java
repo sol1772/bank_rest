@@ -29,11 +29,11 @@ public class BankTransaction {
     private String transactionReference;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "from_card_Id")
+    @JoinColumn(name = "from_card_id")
     private Card fromCard;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "to_card_Id")
+    @JoinColumn(name = "to_card_id")
     private Card toCard;
 
     @Column(precision = 19, scale = 4)

@@ -4,6 +4,7 @@ import com.example.bankcards.TestConfig;
 import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.mappers.UserMapper;
 import com.example.bankcards.dto.request.ChangePasswordRequest;
+import com.example.bankcards.dto.request.ChangeRoleRequest;
 import com.example.bankcards.dto.request.CreateUserRequest;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.enums.Role;
@@ -93,14 +94,16 @@ class UserControllerTest {
     @Test
     void addUser_shouldCreateUser() throws Exception {
         CreateUserRequest request = new CreateUserRequest();
-        request.setPassword("123");
+        request.setUsername("test_user");
+        request.setPassword("Pass12345");
+        request.setRole(Role.USER);
 
         User user = new User();
         user.setId(1L);
 
         UserDto dto = new UserDto();
 
-        when(userMapper.toEntity(any())).thenReturn(user);
+        when(userMapper.requestToEntity(any())).thenReturn(user);
         when(userService.createUser(any(), any())).thenReturn(user);
         when(userMapper.toDto(user)).thenReturn(dto);
 
@@ -108,6 +111,7 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
+        verify(userService).createUser(any(), eq("Pass12345"));
     }
 
     @Test
@@ -116,11 +120,11 @@ class UserControllerTest {
 
         User user = new User();
 
-        when(userMapper.toEntity(any())).thenReturn(user);
+        when(userMapper.requestToEntity(any())).thenReturn(user);
 
         doAnswer(invocation -> {
             BindingResult br = invocation.getArgument(1);
-            br.rejectValue("user", "error", "Invalid");
+            br.rejectValue("username", "error", "Username is already in use");
             return null;
         }).when(userValidator).validate(any(), any());
 
@@ -134,6 +138,8 @@ class UserControllerTest {
 
     @Test
     void changeRole_shouldReturnUpdatedUser() throws Exception {
+        ChangeRoleRequest request = new ChangeRoleRequest();
+        request.setRole(Role.ADMIN);
         User user = new User();
         UserDto dto = new UserDto();
 
@@ -142,7 +148,7 @@ class UserControllerTest {
 
         mockMvc.perform(patch(BASE_URL + "/1/role")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Role.ADMIN)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 

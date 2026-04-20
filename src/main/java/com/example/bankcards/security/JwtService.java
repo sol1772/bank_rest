@@ -1,8 +1,10 @@
 package com.example.bankcards.security;
 
-import com.example.bankcards.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.crypto.SecretKey;
@@ -12,16 +14,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
 public class JwtService {
     private final SecretKey secretKey;
     private final long accessTokenExpiration;
     private final long refreshTokenExpiration;
-    private final Map<String, Object> claims = new HashMap<>();
 
     public JwtService(SecretKey secretKey, long accessTokenExpiration, long refreshTokenExpiration) {
         this.secretKey = secretKey;
         this.accessTokenExpiration = accessTokenExpiration;
         this.refreshTokenExpiration = refreshTokenExpiration;
+    }
+
+    public static SecretKey jwtSecretKey(String jwtKey) {
+        return Keys.hmacShaKeyFor(
+                jwtKey.getBytes()
+        );
     }
 
     public String extractUsername(String token) {
@@ -42,19 +50,22 @@ public class JwtService {
     }
 
     public String generateAccessToken(UserDetails userDetails) {
-        claims.clear();
-        if (userDetails instanceof User customUserDetails) {
-            claims.put("id", customUserDetails.getId());
-            claims.put("role", customUserDetails.getRole());
+        Map<String, Object> claims = new HashMap<>();
+        if (userDetails instanceof CustomUserDetails u) {
+            claims.put("id", u.getId());
+            claims.put("roles", u.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .toList());
+            log.debug("Generating token for: {}", userDetails.getUsername());
         }
         return createToken(claims, userDetails.getUsername(), accessTokenExpiration);
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        claims.clear();
-        if (userDetails instanceof User customUserDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        if (userDetails instanceof CustomUserDetails customUserDetails) {
             claims.put("id", customUserDetails.getId());
-            claims.put("role", customUserDetails.getRole());
+            claims.put("role", customUserDetails.getAuthorities());
         }
         return createToken(claims, userDetails.getUsername(), refreshTokenExpiration);
     }

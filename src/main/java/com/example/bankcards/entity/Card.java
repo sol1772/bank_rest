@@ -1,5 +1,6 @@
 package com.example.bankcards.entity;
 
+import com.example.bankcards.dto.mappers.YearMonthConverter;
 import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.util.MaskingUtil;
 import jakarta.persistence.*;
@@ -32,10 +33,11 @@ public class Card {
     @JoinColumn(name = "user_id", nullable = false)
     private User holder;
 
-    @Column(nullable = false)
+    @Convert(converter = YearMonthConverter.class)
+    @Column(nullable = false, columnDefinition = "VARCHAR(7)")
     private YearMonth expiry;
 
-    @Column(nullable = false, length = 3)
+    @Column(nullable = false, length = 255)
     private String cvc;
 
     @Enumerated(EnumType.STRING)

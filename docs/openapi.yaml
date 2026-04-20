@@ -1,0 +1,831 @@
+openapi: 3.1.0
+info:
+  title: Bank Card Management System
+  description: REST API for managing bank cards, users and transfers
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: Register and login
+  - name: Users
+    description: User management and profile
+  - name: Cards
+    description: Admin card management and operations for authenticated users
+  - name: Bank transactions
+    description: Transferring funds between user own cards
+  - name: Card blocking requests
+    description: User card blocking requests
+
+paths:
+  /api/users:
+    get:
+      tags: [ Users ]
+      summary: Get all users (ADMIN)
+      operationId: getUsers
+      parameters:
+        - name: pageRequestDto
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/PageRequestDto"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageUserDto"
+    post:
+      tags: [ Users ]
+      summary: Create user (ADMIN)
+      operationId: addUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDto"
+  /api/transactions/transfer:
+    post:
+      tags: [ Bank transactions ]
+      summary: Create transaction (USER)
+      operationId: transferFunds
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BankTransactionDto"
+  /api/requests/block/{id}:
+    get:
+      tags: [ Card blocking requests ]
+      summary: Get card blocking request by ID (ADMIN)
+      operationId: getCardBlockingRequest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardBlockingRequest"
+    post:
+      tags: [ Card blocking requests ]
+      summary: Create a card blocking request (USER)
+      operationId: addCardBlockRequest
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardBlockingRequest"
+  /api/cards:
+    get:
+      tags: [ Cards ]
+      summary: Get all cards (ADMIN)
+      operationId: getCards
+      parameters:
+        - name: pageRequestDto
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/PageRequestDto"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageCardDto"
+    post:
+      tags:
+        [ Cards ]
+      summary: Create card (ADMIN)
+      operationId: addCard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCardRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardDto"
+  /api/auth/login:
+    post:
+      tags: [ Authentication ]
+      summary: Login and receive JWT token
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+  /api/users/{id}/role:
+    patch:
+      tags:
+        [ Users ]
+      summary: Change role (ADMIN)
+      operationId: changeRole
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeRoleRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDto"
+  /api/users/{id}/reset-password:
+    patch:
+      tags: [ Users ]
+      summary: Reset password (ADMIN)
+      operationId: resetPassword
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: newPassword
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDto"
+  /api/users/{id}/password:
+    patch:
+      tags: [ Users ]
+      summary: Change password (USER)
+      operationId: changePassword
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDto"
+  /api/cards/{id}/block:
+    patch:
+      tags: [ Cards ]
+      summary: Block card (ADMIN)
+      operationId: blockCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+  /api/cards/{id}/activate:
+    patch:
+      tags:
+        [ Cards ]
+      summary: Activate card (ADMIN)
+      operationId: activateCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+  /api/users/{id}:
+    get:
+      tags: [ Users ]
+      summary: Get user by ID (ADMIN)
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDto"
+    delete:
+      tags: [ Users ]
+      summary: Delete a user (ADMIN)
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+  /api/users/me:
+    get:
+      tags: [ Users ]
+      summary: Get own profile (USER)
+      operationId: getProfile
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/UserDto"
+  /api/transactions:
+    get:
+      tags: [ Bank transactions ]
+      summary: Get all transactions (ADMIN)
+      operationId: getBankTransactions
+      parameters:
+        - name: pageRequestDto
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/PageRequestDto"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageBankTransactionDto"
+  /api/transactions/{id}:
+    get:
+      tags: [ Bank transactions ]
+      summary: Get transaction by ID (ADMIN)
+      operationId: getBankTransaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/BankTransactionDto"
+  /api/requests/block:
+    get:
+      tags: [ Card blocking requests ]
+      summary: Get all card blocking requests (ADMIN)
+      operationId: getCardBlockingRequests
+      parameters:
+        - name: pageRequestDto
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/PageRequestDto"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageCardBlockingRequest"
+  /api/cards/{id}:
+    get:
+      tags: [ Cards ]
+      summary: Get card by ID (ADMIN)
+      operationId: getCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/CardDto"
+    delete:
+      tags: [ Cards ]
+      summary: Delete a card (ADMIN)
+      operationId: deleteCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+  /api/cards/{id}/balance:
+    get:
+      tags: [ Cards ]
+      summary: Get own card balance (USER)
+      operationId: getCardBalance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: number
+  /api/cards/me:
+    get:
+      tags: [ Cards ]
+      summary: Get own card (USER)
+      operationId: getMyCards
+      parameters:
+        - name: pageRequestDto
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/PageRequestDto"
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/PageCardDto"
+  /api/cards/me/balance:
+    get:
+      tags: [ Cards ]
+      summary: Get balance (USER)
+      operationId: getUserBalance
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: number
+components:
+  schemas:
+    CreateUserRequest:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/UserDto"
+        password:
+          type: string
+          minLength: 1
+      required:
+        - password
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - USER
+        passwordHash:
+          type: string
+          writeOnly: true
+    Card:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        number:
+          type: string
+        holder:
+          $ref: "#/components/schemas/User"
+        expiry:
+          type: string
+        cvc:
+          type: string
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+        balance:
+          type: number
+        iv:
+          type: string
+    TransferRequest:
+      type: object
+      properties:
+        fromCard:
+          $ref: "#/components/schemas/Card"
+        toCard:
+          $ref: "#/components/schemas/Card"
+        amount:
+          type: number
+          minimum: 0.01
+      required:
+        - fromCard
+        - toCard
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - USER
+        passwordHash:
+          type: string
+    BankTransactionDto:
+      type: object
+      properties:
+        transactionReference:
+          type: string
+        id:
+          type: integer
+          format: int64
+        fromCardId:
+          type: integer
+          format: int64
+        toCardId:
+          type: integer
+          format: int64
+        amount:
+          type: number
+        status:
+          type: string
+          enum:
+            - PENDING
+            - PROCESSING
+            - SUCCESS
+            - FAILED
+        createdAt:
+          type: string
+          format: date-time
+    CardBlockingRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        card:
+          $ref: "#/components/schemas/Card"
+        createdAt:
+          type: string
+          format: date-time
+        requestStatus:
+          type: string
+          enum:
+            - PROCESSING
+            - GRANTED
+            - REJECTED
+    CreateCardRequest:
+      type: object
+      properties:
+        number:
+          type: string
+          minLength: 1
+          pattern: "^\\d{16}$"
+        holderId:
+          type: integer
+          format: int64
+        expiry:
+          type: string
+        balance:
+          type: number
+          minimum: 0.00
+      required:
+        - expiry
+        - holderId
+        - number
+    CardDto:
+      type: object
+      properties:
+        number:
+          type: string
+        holder:
+          $ref: "#/components/schemas/UserDto"
+        expiry:
+          type: string
+        id:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+        balance:
+          type: number
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+      required:
+        - password
+        - username
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+    ChangeRoleRequest:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - ADMIN
+            - USER
+      required:
+        - role
+    ChangePasswordRequest:
+      type: object
+      properties:
+        oldPassword:
+          type: string
+          minLength: 1
+        newPassword:
+          type: string
+          minLength: 1
+      required:
+        - newPassword
+        - oldPassword
+    PageRequestDto:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        direction:
+          type: string
+          enum:
+            - ASC
+            - DESC
+        sortBy:
+          type: string
+    PageUserDto:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserDto"
+        number:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
+    PageableObject:
+      type: object
+      properties:
+        offset:
+          type: integer
+          format: int64
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        paged:
+          type: boolean
+        pageNumber:
+          type: integer
+          format: int32
+        pageSize:
+          type: integer
+          format: int32
+        unpaged:
+          type: boolean
+    SortObject:
+      type: object
+      properties:
+        empty:
+          type: boolean
+        sorted:
+          type: boolean
+        unsorted:
+          type: boolean
+    PageBankTransactionDto:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/BankTransactionDto"
+        number:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
+    PageCardBlockingRequest:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardBlockingRequest"
+        number:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean
+    PageCardDto:
+      type: object
+      properties:
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        size:
+          type: integer
+          format: int32
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardDto"
+        number:
+          type: integer
+          format: int32
+        first:
+          type: boolean
+        last:
+          type: boolean
+        sort:
+          $ref: "#/components/schemas/SortObject"
+        numberOfElements:
+          type: integer
+          format: int32
+        pageable:
+          $ref: "#/components/schemas/PageableObject"
+        empty:
+          type: boolean

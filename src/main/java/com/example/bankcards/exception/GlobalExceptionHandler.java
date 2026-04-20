@@ -1,6 +1,7 @@
 package com.example.bankcards.exception;
 
 import lombok.Getter;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -12,6 +13,8 @@ import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static boolean debugMode = true;
+
     @ExceptionHandler(AppRuntimeException.class)
     public ResponseEntity<ErrorResponse> handleBusiness(AppRuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -43,11 +46,20 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), "Invalid username or password"));
     }
 
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuth(org.springframework.security.core.AuthenticationException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), "Unauthorized"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(Exception ex) {
+        String message = "An unexpected error occurred";
+        if (debugMode) {
+            message += ExceptionUtils.getStackTrace(ex);
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        "An unexpected error occurred"));
+                .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message));
     }
 
     @Getter

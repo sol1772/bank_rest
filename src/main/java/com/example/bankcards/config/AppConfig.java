@@ -32,7 +32,7 @@ public class AppConfig {
 
     @Bean
     public JwtService jwtService() {
-        return new JwtService(CryptoUtil.getSecretKey(getJwtKey(), getKeySalt()),
+        return new JwtService(JwtService.jwtSecretKey(getJwtKey()),
                 getAccessTokenExpiration(), getRefreshTokenExpiration());
     }
 }

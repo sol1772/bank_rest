@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-insert-admin
+      author: sol
+      # Default admin: username=admin, password=Pass_admin (bcrypt)
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: username, value: admin }
+              - column: { name: password_hash, value: "$2a$10$IUnF30MlPVdlHvoSAIejoelBur6cYDyHVSa8b/oYNs/0Um5soId1S" }
+              - column: { name: role, value: ADMIN }

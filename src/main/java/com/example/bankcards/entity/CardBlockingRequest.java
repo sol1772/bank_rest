@@ -11,7 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "Card_blocking_requests")
+@Table(name = "card_blocking_requests")
 @Getter
 @Setter
 @NoArgsConstructor

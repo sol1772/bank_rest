@@ -4,7 +4,6 @@ import com.example.bankcards.exception.AppRuntimeException;
 import lombok.Getter;
 
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
@@ -44,22 +43,6 @@ public final class CryptoUtil {
         byte[] initializationVector = new byte[IV_LENGTH_BYTE];
         RANDOM.nextBytes(initializationVector);
         return initializationVector;
-    }
-
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-        keyGen.init(256);
-        CryptoUtil cryptoUtil = new CryptoUtil(keyGen.generateKey());
-
-        byte[] iv = getInitializationVector();
-        String cardNumber = "1234567812345678";
-        String encrypted = cryptoUtil.encrypt(cardNumber, iv);
-        String decrypted = cryptoUtil.decrypt(encrypted, iv);
-
-        System.out.println("SECRET_KEY: " + cryptoUtil.getSecretKey());
-        System.out.println("cardNumber: " + cardNumber);
-        System.out.println("encrypted: " + encrypted);
-        System.out.println("decrypted: " + decrypted);
     }
 
     public String encrypt(String cardNumber, byte[] iv) {

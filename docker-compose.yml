@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:17
+    container_name: bankrest
+
+    environment:
+      POSTGRES_DB: bankrest
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER} -d bankrest" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: bankrest-app
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
