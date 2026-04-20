@@ -1,109 +1,123 @@
 package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.CardDto;
+import com.example.bankcards.dto.PageRequestDto;
 import com.example.bankcards.dto.mappers.CardMapper;
+import com.example.bankcards.dto.request.CreateCardRequest;
 import com.example.bankcards.entity.Card;
-import com.example.bankcards.exception.AppRuntimeException;
+import com.example.bankcards.security.CustomUserDetails;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.validators.CardValidator;
-import com.example.bankcards.util.AppErrorResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.mapstruct.factory.Mappers;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.net.URI;
-import java.security.Principal;
-import java.util.List;
 import java.util.Optional;
 
 import static com.example.bankcards.util.ErrorsUtil.returnErrorsToClient;
-import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/cards")
 public class CardController {
     private final CardService cardService;
+    private final CardMapper cardMapper;
     private final CardValidator cardValidator;
-    private final CardMapper mapper = Mappers.getMapper(CardMapper.class);
+
+    // ===================== GET =====================
+    @GetMapping
+    @Operation(summary = "Get all cards (ADMIN)")
+    public ResponseEntity<Page<CardDto>> getCards(@ModelAttribute PageRequestDto pageRequestDto) {
+        if (pageRequestDto.getSortBy() == null) {
+            pageRequestDto.setSortBy("holder");
+        }
+        Page<CardDto> cardsPage = cardService.getAll(pageRequestDto.toPageable());
+        return ResponseEntity.ok().body(cardsPage);
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CardDto> getCard(@PathVariable("id") Long id) {
-        Card card = cardService.getCardById(id);
-        return ResponseEntity.of(Optional.ofNullable(mapper.toDto(card)));
+    @Operation(summary = "Get card by ID (ADMIN)")
+    public ResponseEntity<CardDto> getCard(@PathVariable Long id) {
+        return ResponseEntity.ok(cardService.getCardById(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<CardDto>> getCards() {
-        List<CardDto> cards = cardService.getAll()
-                .stream()
-                .map(mapper::toDto)
-                .collect(toList());
-        return ResponseEntity.ok().body(cards);
+    @GetMapping("/me")
+    @Operation(summary = "Get own card (USER)")
+    public ResponseEntity<Page<CardDto>> getMyCards(@ModelAttribute PageRequestDto pageRequestDto,
+                                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String username = userDetails.getUsername();
+        if (pageRequestDto.getSortBy() == null) {
+            pageRequestDto.setSortBy("number");
+        }
+        Page<CardDto> cardsPage = cardService.getAllByUser(pageRequestDto.toPageable(), username);
+        return ResponseEntity.ok(cardsPage);
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<List<CardDto>> getUserCards(Principal principal) {
-        String username = principal.getName();
-        List<CardDto> cards = cardService.getAllByUser(username)
-                .stream()
-                .map(mapper::toDto)
-                .collect(toList());
-        return ResponseEntity.ok().body(cards);
-    }
-
-    @GetMapping("/balance/{id}")
-    public ResponseEntity<BigDecimal> getCardBalance(@PathVariable("id") Long id, Principal principal) {
-        String username = principal.getName();
+    @GetMapping("/{id}/balance")
+    @Operation(summary = "Get own card balance (USER)")
+    public ResponseEntity<BigDecimal> getCardBalance(@PathVariable Long id,
+                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String username = userDetails.getUsername();
         BigDecimal balance = cardService.getCardBalance(id, username);
-        return ResponseEntity.of(Optional.ofNullable(balance));
+        if (balance == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(balance);
     }
 
-    @GetMapping("/balance")
-    public ResponseEntity<BigDecimal> getUserBalance(Principal principal) {
-        String username = principal.getName();
+    @GetMapping("/me/balance")
+    @Operation(summary = "Get balance (USER)")
+    public ResponseEntity<BigDecimal> getUserBalance(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        String username = userDetails.getUsername();
         BigDecimal balance = cardService.getUserBalance(username);
         return ResponseEntity.of(Optional.ofNullable(balance));
     }
 
-    @PostMapping("/add")
-    public ResponseEntity<CardDto> addCard(@RequestBody CardDto cardDto, String password, BindingResult bindingResult) {
-        Card card = mapper.toEntity(cardDto);
+    // ===================== CREATE =====================
+    @PostMapping
+    @Operation(summary = "Create card (ADMIN)")
+    public ResponseEntity<CardDto> addCard(@Valid @RequestBody CreateCardRequest request, BindingResult bindingResult) {
+        Card card = cardMapper.requestToEntity(request);
         cardValidator.validate(card, bindingResult);
         if (bindingResult.hasErrors()) {
             returnErrorsToClient(bindingResult);
         }
-        Card created = cardService.createCard(card);
+        Card created = cardService.createCard(card, request.getHolderId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(created.getId())
                 .toUri();
-        return ResponseEntity.created(location).body(mapper.toDto(created));
+        return ResponseEntity.created(location).body(cardMapper.toDto(created));
     }
 
-    @PostMapping("/activate/{id}")
-    public void activateCard(@PathVariable("id") Long id) {
+    // ===================== UPDATE =====================
+    @PatchMapping("/{id}/activate")
+    @Operation(summary = "Activate card (ADMIN)")
+    public ResponseEntity<Void> activateCard(@PathVariable Long id) {
         cardService.activateCard(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/block/{id}")
-    public void blockCard(@PathVariable("id") Long id) {
+    @PatchMapping("/{id}/block")
+    @Operation(summary = "Block card (ADMIN)")
+    public ResponseEntity<Void> blockCard(@PathVariable Long id) {
         cardService.blockCard(id);
+        return ResponseEntity.noContent().build();
     }
 
+    // ===================== DELETE =====================
     @DeleteMapping("/{id}")
-    public void deleteCard(@PathVariable("id") long id) {
+    @Operation(summary = "Delete a card (ADMIN)")
+    public ResponseEntity<Void> deleteCard(@PathVariable long id) {
         cardService.deleteCard(id);
-    }
-
-    @ExceptionHandler
-    private ResponseEntity<AppErrorResponse> handleException(AppRuntimeException e) {
-        AppErrorResponse response = new AppErrorResponse(e.getMessage(), System.currentTimeMillis());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return ResponseEntity.noContent().build();
     }
 }

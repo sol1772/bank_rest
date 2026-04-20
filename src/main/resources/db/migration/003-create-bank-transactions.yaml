@@ -1,0 +1,58 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-bank-transactions
+      author: sol
+
+      changes:
+        - createTable:
+            tableName: bank_transactions
+            columns:
+
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  constraints:
+                    primaryKey: true
+
+              - column:
+                  name: transaction_reference
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: from_card_id
+                  type: BIGINT
+
+              - column:
+                  name: to_card_id
+                  type: BIGINT
+
+              - column:
+                  name: amount
+                  type: DECIMAL(19,4)
+
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: bank_transactions
+            baseColumnNames: from_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_tx_from_card
+
+        - addForeignKeyConstraint:
+            baseTableName: bank_transactions
+            baseColumnNames: to_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_tx_to_card
