@@ -3,6 +3,13 @@ databaseChangeLog:
       id: 004-create-card-blocking-requests
       author: sol
 
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - tableExists:
+                tableName: card_blocking_requests
+
       changes:
         - createTable:
             tableName: card_blocking_requests

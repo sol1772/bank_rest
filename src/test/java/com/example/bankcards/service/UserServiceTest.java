@@ -27,7 +27,7 @@ class UserServiceTest {
     private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userService;
 
     @Test
     void createUser_encodesPassword_andSavesUser() {

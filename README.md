@@ -1,105 +1,213 @@
-<h1>🚀 Разработка Системы Управления Банковскими Картами</h1>
+# 💳 Bank Cards Management API
 
-<h2>📁 Стартовая структура</h2>
-  <p>
-    Проектная структура с директориями и описательными файлами (<code>README Controller.md</code>, <code>README Service.md</code> и т.д.) уже подготовлена.<br />
-    Все реализации нужно добавлять <strong>в соответствующие директории</strong>.
-  </p>
-  <p>
-    После завершения разработки <strong>временные README-файлы нужно удалить</strong>, чтобы они не попадали в итоговую сборку.
-  </p>
+Production-style REST API for managing bank cards, users, and money transfers.  
+Built with a focus on security, clean architecture, and real-world backend practices.
+---
 
-<h2>📝 Описание задачи</h2>
-  <p>Разработать backend-приложение на Java (Spring Boot) для управления банковскими картами:</p>
-  <ul>
-    <li>Создание и управление картами</li>
-    <li>Просмотр карт</li>
-    <li>Переводы между своими картами</li>
-  </ul>
+## ✨ Why this project?
 
-<h2>💳 Атрибуты карты</h2>
-  <ul>
-    <li>Номер карты (зашифрован, отображается маской: <code>**** **** **** 1234</code>)</li>
-    <li>Владелец</li>
-    <li>Срок действия</li>
-    <li>Статус: Активна, Заблокирована, Истек срок</li>
-    <li>Баланс</li>
-  </ul>
+This is not just a CRUD app. It demonstrates:
 
-<h2>🧾 Требования</h2>
+* 🔐 Security-first design (JWT, encryption, access control)
+* 🧱 Layered architecture (Controller → Service → Repository)
+* ⚙️ Production-ready practices (Liquibase, Docker, validation, logging)
+* 🧪 Test coverage (unit + security + controller tests)
 
-<h3>✅ Аутентификация и авторизация</h3>
-  <ul>
-    <li>Spring Security + JWT</li>
-    <li>Роли: <code>ADMIN</code> и <code>USER</code></li>
-  </ul>
+---
 
-<h3>✅ Возможности</h3>
-<strong>Администратор:</strong>
-  <ul>
-    <li>Создаёт, блокирует, активирует, удаляет карты</li>
-    <li>Управляет пользователями</li>
-    <li>Видит все карты</li>
-  </ul>
+## ✨ Features
 
-<strong>Пользователь:</strong>
-  <ul>
-    <li>Просматривает свои карты (поиск + пагинация)</li>
-    <li>Запрашивает блокировку карты</li>
-    <li>Делает переводы между своими картами</li>
-    <li>Смотрит баланс</li>
-  </ul>
+### 👤 Authentication & Authorization
 
-<h3>✅ API</h3>
-  <ul>
-    <li>CRUD для карт</li>
-    <li>Переводы между своими картами</li>
-    <li>Фильтрация и постраничная выдача</li>
-    <li>Валидация и сообщения об ошибках</li>
-  </ul>
+- JWT-based authentication
+- Role-based access control (ADMIN / USER)
+- Secure password hashing (BCrypt)
 
-<h3>✅ Безопасность</h3>
-  <ul>
-    <li>Шифрование данных</li>
-    <li>Ролевой доступ</li>
-    <li>Маскирование номеров карт</li>
-  </ul>
+### 💳 Card Management
 
-<h3>✅ Работа с БД</h3>
-  <ul>
-    <li>PostgreSQL или MySQL</li>
-    <li>Миграции через Liquibase (<code>src/main/resources/db/migration</code>)</li>
-  </ul>
+- Create / activate / block / delete cards (ADMIN)
+- View own cards with pagination (USER)
+- Balance tracking
 
-<h3>✅ Документация</h3>
-  <ul>
-    <li>Swagger UI / OpenAPI — <code>docs/openapi.yaml</code></li>
-    <li><code>README.md</code> с инструкцией запуска</li>
-  </ul>
+### 💸 Transactions
 
-<h3>✅ Развёртывание и тестирование</h3>
-  <ul>
-    <li>Docker Compose для dev-среды</li>
-    <li>Liquibase миграции</li>
-    <li>Юнит-тесты ключевой бизнес-логики</li>
-  </ul>
+- Transfer funds between user cards
+- Transaction history with filtering
 
-<h2>📊 Оценка</h2>
-  <ul>
-    <li>Соответствие требованиям</li>
-    <li>Чистота архитектуры и кода</li>
-    <li>Безопасность</li>
-    <li>Обработка ошибок</li>
-    <li>Покрытие тестами</li>
-    <li>ООП и уровни абстракции</li>
-  </ul>
+### 🔒 Security
 
-<h2>💡 Технологии</h2>
-  <p>
-    Java 17+, Spring Boot, Spring Security, Spring Data JPA, PostgreSQL/MySQL, Liquibase, Docker, JWT, Swagger (OpenAPI)
-  </p>
+- AES encryption of card numbers
+- Masking card numbers (**** **** **** 1234)
+- Method-level security (@PreAuthorize)
+- Input validation & centralized exception handling
 
-<h2> 📤 Формат сдачи</h2>
-<p>
-Весь код и изменения принимаются только через git-репозиторий с открытым доступом к проекту. Отправка файлов в любом виде не принимается.
-  </p>
+### 📊 Additional
+
+- Pagination & filtering
+- Logging of business operations
+- OpenAPI (Swagger) documentation
+
+---
+
+## 🛠 Tech Stack
+
+| Layer      | Technology                   |
+|------------|------------------------------|
+| Language   | Java 25                      |
+| Framework  | Spring Boot 4                |
+| Security   | Spring Security + JWT        |
+| Data       | Spring Data JPA + PostgreSQL |
+| Migrations | Liquibase                    |
+| Testing    | JUnit 5 + Mockito + MockMvc  |
+| Docs       | OpenAPI (Swagger)            |
+| Build      | Maven                        |
+| Deployment | Docker + Docker Compose      |
+
+---
+
+## ⚙️ Getting Started
+
+### 🔑 Requirements
+
+Create `.env` file in project root:  
+DB_USER=  
+DB_PASS=  
+JWT_SECRET=  
+ENCRYPTION_KEY=  
+KEY_SALT=
+
+**Constraints**:
+
+* JWT_SECRET, ENCRYPTION_KEY ≥ 32 chars
+* KEY_SALT ≥ 16 chars
+
+---
+
+## 🐳 Run with Docker (recommended)
+
+```bash
+git clone <repo-url>
+cd bank_rest
+docker-compose up --build
+```
+
+**Access:**
+
+* API → http://localhost:8080
+* Swagger → http://localhost:8080/swagger-ui.html
+* PostgreSQL → localhost:5433
+
+---
+
+## 💻 Run locally
+
+```bash
+# create DB
+psql -U postgres -c "CREATE DATABASE bankrest;"
+psql -U postgres -c "CREATE USER dbuser WITH PASSWORD 'dbpass';"
+psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE bankrest TO dbuser;"
+
+# run app
+mvn spring-boot:run
+```
+
+---
+
+## 🔐 Default Admin
+
+Created automatically via Liquibase:
+
+| Username | Password     | Role  |
+|----------|--------------|-------|
+| `admin`  | `Pass_admin` | ADMIN |
+
+---
+
+## 🔑 Authentication Flow
+
+1. Call: `POST /api/auth/login`
+2. Receive JWT token
+3. Use it in Swagger → Authorize
+
+---
+
+## 📖 API Documentation
+
+* OpenAPI spec → `docs/openapi.yaml`
+* Swagger UI → http://localhost:8080/swagger-ui.html
+
+---
+
+## 🧪 Testing
+
+Includes:
+
+* Unit tests (Mockito)
+* Controller tests (MockMvc)
+* Security tests (@WithMockUser)
+
+---
+
+## 🧱 Architecture
+
+Controller → Service → Repository → DB
+
+**Principles used:**
+
+* Separation of concerns
+* Interface-based services
+* DTO mapping layer
+* Transaction management
+* Validation at service level
+
+---
+
+## 🔄 Database Management
+
+* Managed via **Liquibase**
+* Includes:
+    * schema creation
+    * constraints
+    * initial admin user
+* Uses **preConditions** for safe migrations
+
+---
+
+## 🧠 What I focused on
+
+* Writing **clean, readable, production-like code**
+* Avoiding "toy project" patterns
+* Handling real-world concerns:
+    * security
+    * data integrity
+    * migrations
+    * testing
+
+---
+
+## 📌 Notes
+
+* Card numbers and CVC are **encrypted**, not stored in plain text
+* CVC is **not exposed** after creation (in real banking apps cvc is stored in the Hardware Security Module)
+* API enforces strict access control
+
+---
+
+## 💬 Final note
+
+This project was built as a **serious backend exercise**, not just a demo.  
+If you're looking for someone who understands not only how to code, but also why systems are built this way — this
+project reflects that.
+
+## 👨‍💻 Author
+
+Maksyutov Salavat
+
+Backend developer focused on:
+
+* Java & Spring ecosystem
+* Clean architecture
+* Writing maintainable production code
+
+https://github.com/sol1772/bank_rest
+

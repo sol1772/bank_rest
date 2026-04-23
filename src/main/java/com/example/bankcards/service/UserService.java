@@ -1,114 +1,94 @@
 package com.example.bankcards.service;
 
 import com.example.bankcards.dto.UserDto;
-import com.example.bankcards.dto.mappers.UserMapper;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.enums.Role;
-import com.example.bankcards.exception.AppRuntimeException;
 import com.example.bankcards.exception.ResourceNotFoundException;
-import com.example.bankcards.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
+import org.springframework.security.access.AccessDeniedException;
 
-import java.util.Objects;
+/**
+ * Service for managing users and their credentials.
+ * Provides operations restricted by role-based security.
+ * ADMIN users manage accounts, while regular users can access only their own data.
+ */
+public interface UserService {
+    /**
+     * Returns user by id.
+     * Only ADMIN is allowed to perform this operation.
+     *
+     * @param id user id
+     * @return user entity
+     * @throws ResourceNotFoundException if user with id does not exist
+     */
+    User getUserById(Long id);
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
-@Transactional(readOnly = true)
-public class UserService {
-    private final UserRepository userRepository;
-    private final UserMapper userMapper;
-    private final PasswordEncoder passwordEncoder;
+    /**
+     * Returns paginated list of users (ADMIN only).
+     *
+     * @param pageable pagination info
+     * @return page of users
+     */
+    Page<UserDto> getAll(Pageable pageable);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public User getUserById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format("User with id %d does not exist", id)));
-    }
+    /**
+     * Returns user profile.
+     * Only the user himself is allowed to perform this operation.
+     *
+     * @param username username
+     * @return user DTO
+     * @throws ResourceNotFoundException if user does not exist
+     */
+    UserDto getProfile(String username);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public Page<UserDto> getAll(Pageable pageable) {
-        return userRepository.findAll(pageable).map(userMapper::toDto);
-    }
+    /**
+     * Creates a new user with the given password (ADMIN only).
+     *
+     * @param user        user entity (id will be ignored if present)
+     * @param newPassword raw password to be encoded
+     * @return persisted user
+     * @throws IllegalArgumentException if password is empty
+     */
+    User createUser(User user, String newPassword);
 
-    public UserDto getProfile(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + username));
-        return userMapper.toDto(user);
-    }
+    /**
+     * Deletes the user by id (ADMIN only).
+     *
+     * @param id user id
+     * @throws ResourceNotFoundException if user does not exist
+     */
+    void deleteUser(Long id);
 
-    @Transactional
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public User createUser(User user, String newPassword) {
-        Objects.requireNonNull(user, "User must not be null");
-        Assert.hasText(newPassword, "New password must not be null or empty");
-        if (user.getId() != null) {
-            user.setId(null);
-        }
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        User saved = userRepository.save(user);
-        log.info("New user created with id {}", saved.getId());
-        return saved;
-    }
+    /**
+     * Changes role of the user (ADMIN only).
+     *
+     * @param id      user id
+     * @param newRole new role
+     * @return updated user
+     * @throws ResourceNotFoundException if user does not exist
+     */
+    User changeRole(Long id, Role newRole);
 
-    @Transactional
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
-            throw new ResourceNotFoundException(String.format("User with id %d does not exist", id));
-        }
-        userRepository.deleteById(id);
-        log.info("User with id {} is deleted", id);
-    }
+    /**
+     * Changes password of the user (ADMIN only).
+     *
+     * @param id          user id
+     * @param oldPassword current password (for validation)
+     * @param newPassword new password
+     * @return updated user
+     * @throws AccessDeniedException    if user tries to change another user's password
+     * @throws IllegalArgumentException if new password is empty
+     */
+    User changePassword(Long id, String oldPassword, String newPassword);
 
-    @Transactional
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public User changeRole(Long id, Role newRole) {
-        User user = userRepository.findByIdForUpdate(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format("User with id %d does not exist", id)));
-        user.setRole(newRole);
-        User updated = userRepository.save(user);
-        log.info("Role changed to {} for user {}", newRole, id);
-        return updated;
-    }
-
-    @Transactional
-    @PreAuthorize("#id == authentication.principal.id")
-    public User changePassword(Long id, String oldPassword, String newPassword) {
-        Assert.hasText(newPassword, "New password must not be null or empty");
-        User user = userRepository.findByIdForUpdate(id)
-                .orElseThrow(() -> new AppRuntimeException(
-                        String.format("User with id %d does not exist", id)));
-        if (!passwordEncoder.matches(oldPassword, user.getPasswordHash())) {
-            log.warn("Password change failed for user {} — old password incorrect", id);
-            throw new AppRuntimeException("Old password is incorrect!");
-        }
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        User updated = userRepository.save(user);
-        log.info("Password changed successfully for user {}", id);
-        return updated;
-    }
-
-    @Transactional
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public User resetPassword(Long id, String newPassword) {
-        Assert.hasText(newPassword, "New password must not be null or empty");
-        User user = userRepository.findByIdForUpdate(id)
-                .orElseThrow(() -> new AppRuntimeException(
-                        String.format("User with id %d does not exist", id)));
-        user.setPasswordHash(passwordEncoder.encode(newPassword));
-        User updated = userRepository.save(user);
-        log.info("Password reset by admin for user {}", id);
-        return updated;
-    }
+    /**
+     * Resets password of the user (ADMIN only).
+     *
+     * @param id          user id
+     * @param newPassword new password
+     * @return updated user
+     * @throws ResourceNotFoundException if user does not exist
+     */
+    User resetPassword(Long id, String newPassword);
 }

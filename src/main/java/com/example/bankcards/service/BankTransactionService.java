@@ -1,112 +1,91 @@
 package com.example.bankcards.service;
 
 import com.example.bankcards.dto.BankTransactionDto;
-import com.example.bankcards.dto.mappers.BankTransactionMapper;
 import com.example.bankcards.entity.BankTransaction;
-import com.example.bankcards.entity.Card;
-import com.example.bankcards.entity.enums.CardStatus;
 import com.example.bankcards.entity.enums.TransactionStatus;
-import com.example.bankcards.exception.AppRuntimeException;
 import com.example.bankcards.exception.ResourceNotFoundException;
-import com.example.bankcards.repository.BankTransactionRepository;
-import com.example.bankcards.repository.CardRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
-@Service
-@RequiredArgsConstructor
-@Slf4j
-@Transactional(readOnly = true)
-public class BankTransactionService {
-    private final BankTransactionRepository bankTransactionRepository;
-    private final BankTransactionMapper mapper;
-    private final CardRepository cardRepository;
+/**
+ * Service for managing bank transactions.
+ * <p>
+ * Provides operations for retrieving and performing transactions.
+ */
+public interface BankTransactionService {
+    /**
+     * Returns transaction by id (ADMIN only).
+     *
+     * @param id transaction id
+     * @return transaction entity
+     * @throws ResourceNotFoundException if transaction does not exist
+     */
+    BankTransaction getById(Long id);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public BankTransaction getById(Long id) {
-        return bankTransactionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format("Bank transaction with id %d does not exist", id)));
-    }
+    /**
+     * Returns paginated list of all transactions (ADMIN only).
+     *
+     * @param pageable pagination info
+     * @return page of transactions
+     */
+    Page<BankTransactionDto> getAll(Pageable pageable);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public Page<BankTransactionDto> getAll(Pageable pageable) {
-        return bankTransactionRepository.findAll(pageable).map(mapper::toDto);
-    }
+    /**
+     * Returns transactions where the given card is sender.
+     *
+     * @param cardId   sender card id
+     * @param pageable pagination info
+     * @return page of transactions
+     */
+    Page<BankTransactionDto> getAllBySenderCardId(Long cardId, Pageable pageable);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public Page<BankTransactionDto> getAllByFromCardId(Long cardId, Pageable pageable) {
-        return bankTransactionRepository.findByFromCardId(cardId, pageable).map(mapper::toDto);
-    }
+    /**
+     * Returns transactions where the given card is receiver.
+     *
+     * @param cardId   receiver card id
+     * @param pageable pagination info
+     * @return page of transactions
+     */
+    Page<BankTransactionDto> getAllByReceiverCardId(Long cardId, Pageable pageable);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public Page<BankTransactionDto> getAllByToCardId(Long cardId, Pageable pageable) {
-        return bankTransactionRepository.findByToCardId(cardId, pageable).map(mapper::toDto);
-    }
+    /**
+     * Returns transactions filtered by amount (ADMIN only).
+     *
+     * @param amount   transaction amount
+     * @param pageable pagination info
+     * @return page of transactions
+     */
+    Page<BankTransactionDto> getByAmount(BigDecimal amount, Pageable pageable);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public Page<BankTransactionDto> getByAmount(BigDecimal amount, Pageable pageable) {
-        return bankTransactionRepository.findByAmount(amount, pageable).map(mapper::toDto);
-    }
+    /**
+     * Returns transactions filtered by status (ADMIN only).
+     *
+     * @param status   transaction status
+     * @param pageable pagination info
+     * @return page of transactions
+     */
+    Page<BankTransactionDto> getByStatus(TransactionStatus status, Pageable pageable);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public Page<BankTransactionDto> getByStatus(TransactionStatus status, Pageable pageable) {
-        return bankTransactionRepository.findByStatus(status, pageable).map(mapper::toDto);
-    }
+    /**
+     * Returns transaction by reference.
+     *
+     * @param transactionReference unique reference
+     * @return transaction entity
+     * @throws ResourceNotFoundException if transaction not found
+     */
+    BankTransaction getByTransactionReference(String transactionReference);
 
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public BankTransaction getByTransactionReference(String transactionReference) {
-        return bankTransactionRepository.findByTransactionReference(transactionReference)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        String.format("Bank transaction with reference %s does not exist", transactionReference)));
-    }
-
-    @Transactional
-    public void fundTransfer(BankTransaction transaction, Long fromCardId, Long toCardId, BigDecimal amount) {
-        try {
-            Card fromCard = cardRepository.findByIdForUpdate(fromCardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Source card not found"));
-            Card toCard = cardRepository.findByIdForUpdate(toCardId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Recipient card not found"));
-
-            if (!fromCard.getHolder().equals(toCard.getHolder())) {
-                throw new AppRuntimeException("The holders of the source and recipient cards do not match.");
-            }
-            if (fromCard.getStatus() != CardStatus.ACTIVE) {
-                throw new AppRuntimeException("Source card is not active!");
-            }
-            if (toCard.getStatus() != CardStatus.ACTIVE) {
-                throw new AppRuntimeException("Recipient card is not active!");
-            }
-            if (fromCard.getBalance().compareTo(amount) < 0) {
-                throw new AppRuntimeException(
-                        String.format("Not enough funds on card %s", fromCardId));
-            }
-
-            transaction.setStatus(TransactionStatus.PROCESSING);
-            bankTransactionRepository.save(transaction);
-
-            fromCard.setBalance(fromCard.getBalance().subtract(amount));
-            cardRepository.save(fromCard);
-
-            toCard.setBalance(toCard.getBalance().add(amount));
-            cardRepository.save(toCard);
-
-            transaction.setStatus(TransactionStatus.SUCCESS);
-            bankTransactionRepository.save(transaction);
-            log.info("Transaction {} successful", transaction.getId());
-        } catch (Exception e) {
-            transaction.setStatus(TransactionStatus.FAILED);
-            bankTransactionRepository.save(transaction);
-            log.error("Transaction {} failed: {}", transaction.getId(), e.getMessage());
-            throw e;
-        }
-    }
+    /**
+     * Performs fund transfer between two cards.
+     *
+     * @param transaction transaction entity
+     * @param fromCardId  sender card id
+     * @param toCardId    receiver card id
+     * @param amount      transfer amount
+     * @throws ResourceNotFoundException if any card does not exist
+     * @throws IllegalArgumentException  if amount is invalid
+     */
+    void transferFunds(BankTransaction transaction, Long fromCardId, Long toCardId, BigDecimal amount);
 }

@@ -34,7 +34,7 @@ class BankTransactionServiceTest {
     private CardRepository cardRepository;
 
     @InjectMocks
-    private BankTransactionService transactionService;
+    private BankTransactionServiceImpl transactionService;
 
     private Card getTestCard(Long id, User user) {
         Card card = new Card();
@@ -52,7 +52,7 @@ class BankTransactionServiceTest {
     }
 
     @Test
-    void fundTransfer_shouldFundTransferSuccessfully() {
+    void transferFunds_shouldTransferFundsSuccessfully() {
         // given
         Long fromCardId = 1L;
         Long toCardId = 2L;
@@ -74,7 +74,7 @@ class BankTransactionServiceTest {
         when(bankTransactionRepository.save(any(BankTransaction.class))).thenAnswer(inv -> inv.getArgument(0));
 
         // when
-        transactionService.fundTransfer(transaction, fromCardId, toCardId, amount);
+        transactionService.transferFunds(transaction, fromCardId, toCardId, amount);
 
         // then
         assertEquals(new BigDecimal("90.00"), fromCard.getBalance());
@@ -87,7 +87,7 @@ class BankTransactionServiceTest {
     }
 
     @Test
-    void fundTransfer_shouldThrowException_whenNotEnoughFunds() {
+    void transferFunds_shouldThrowException_whenNotEnoughFunds() {
         // given
         Long fromId = 1L;
         Long toId = 2L;
@@ -111,14 +111,14 @@ class BankTransactionServiceTest {
 
         // when & then
         assertThrows(AppRuntimeException.class,
-                () -> transactionService.fundTransfer(transaction, fromId, toId, amount));
+                () -> transactionService.transferFunds(transaction, fromId, toId, amount));
 
         assertEquals(TransactionStatus.FAILED, transaction.getStatus());
         verify(cardRepository, never()).save(any());
     }
 
     @Test
-    void fundTransfer_shouldThrowException_whenFromCardNotActive() {
+    void transferFunds_shouldThrowException_whenFromCardNotActive() {
         // given
         Long fromId = 1L;
         Long toId = 2L;
@@ -140,14 +140,14 @@ class BankTransactionServiceTest {
 
         // when & then
         assertThrows(AppRuntimeException.class,
-                () -> transactionService.fundTransfer(transaction, fromId, toId, amount));
+                () -> transactionService.transferFunds(transaction, fromId, toId, amount));
 
         assertEquals(TransactionStatus.FAILED, transaction.getStatus());
         verify(cardRepository, never()).save(any());
     }
 
     @Test
-    void fundTransfer_shouldThrowException_whenDifferentHolders() {
+    void transferFunds_shouldThrowException_whenDifferentHolders() {
         // given
         Long fromId = 1L;
         Long toId = 2L;
@@ -173,14 +173,14 @@ class BankTransactionServiceTest {
 
         // when & then
         assertThrows(AppRuntimeException.class,
-                () -> transactionService.fundTransfer(transaction, fromId, toId, amount));
+                () -> transactionService.transferFunds(transaction, fromId, toId, amount));
 
         assertEquals(TransactionStatus.FAILED, transaction.getStatus());
         verify(cardRepository, never()).save(any());
     }
 
     @Test
-    void fundTransfer_shouldThrowException_whenFromCardNotFound() {
+    void transferFunds_shouldThrowException_whenFromCardNotFound() {
         // given
         Long fromId = 1L;
         Long toId = 2L;
@@ -189,7 +189,7 @@ class BankTransactionServiceTest {
 
         // when & then
         assertThrows(ResourceNotFoundException.class,
-                () -> transactionService.fundTransfer(new BankTransaction(), fromId, toId, BigDecimal.TEN));
+                () -> transactionService.transferFunds(new BankTransaction(), fromId, toId, BigDecimal.TEN));
 
         verify(cardRepository, never()).save(any());
     }

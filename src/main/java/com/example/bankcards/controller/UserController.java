@@ -26,6 +26,10 @@ import java.net.URI;
 
 import static com.example.bankcards.util.ErrorsUtil.returnErrorsToClient;
 
+/**
+ * REST controller for managing users.
+ * Accessible only for ADMIN unless specified otherwise.
+ */
 @Slf4j
 @RestController
 @RequiredArgsConstructor

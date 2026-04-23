@@ -34,7 +34,7 @@ class CardBlockingRequestServiceTest {
     private CardService cardService;
 
     @InjectMocks
-    private CardBlockingRequestService cardBlockingRequestService;
+    private CardBlockingRequestServiceImpl cardBlockingRequestService;
 
     @Test
     void createCardBlockRequest_shouldCreateSuccessfully() {
