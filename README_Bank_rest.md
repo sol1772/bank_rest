@@ -1,132 +1,4 @@
-# Bank Card Management System (2026)
-
-REST API built with **Spring Boot 4** for managing bank cards, users, and fund transfers.
-
-## ✨ Features
-
-Spring Security authentication and authorization. Role-based accessing the API using a JWT token.  
-Filtering and paginated search of users, cards, bank transactions, card-blocking requests, data encryption, masking card
-numbers.   
-Error handling, validation of incoming data, logging, Unit-tests.
-
-| Role      | Capability                                         |
-|-----------|----------------------------------------------------|
-| **ADMIN** | Create, block, activate, delete cards              |
-| **ADMIN** | Manage users (list, toggle, delete)                |
-| **ADMIN** | View all cards with filtering                      |
-| **USER**  | View own cards (search + pagination), card balance |
-| **USER**  | Transfer between own cards                         |
-| **USER**  | Request card block                                 |
-| **USER**  | Change own password                                |
-
-**Security highlights:**
-
-- JWT authentication
-- Card numbers AES-encrypted
-- Masked display (`**** **** **** 1234`)
-- Role-based access control (ADMIN / USER)
-- BCrypt password hashing
-
----
-
-## 🛠 Tech Stack
-
-| Layer            | Technology                   |
-|------------------|------------------------------|
-| Development tool | Java 25                      |
-| Framework        | Spring Boot 4                |
-| Security         | Spring Security + JWT (jjwt) |
-| Persistence      | Spring Data JPA + PostgreSQL |
-| Migrations       | Liquibase                    |
-| Docs             | SpringDoc OpenAPI / Swagger  |
-| Build            | Maven                        |
-| Container        | Docker + Docker Compose      |
-| Testing          | JUnit 5 + Mockito + MockMvc  |
-
----
-
-## 🚀 Quick Start
-
-### Important:
-
-You can connect to the PostgreSQL database inside the container using localhost:5433 (to avoid conflicts if port 5432 is
-already in use by a locally installed PostgreSQL instance).
-
-There must be a .env file in the root of the project with specified parameters  
-DB_USER=  
-DB_PASS=  
-JWT_SECRET=  
-ENCRYPTION_KEY=  
-KEY_SALT=
-
-The JWT_SECRET and ENCRYPTION_KEY must be min 32 chars, and the KEY_SALT must be min 16 chars.  
-The DB_USER and DB_PASS environment variables are used for database access, JWT_SECRET is used for generating access
-tokens, and ENCRYPTION_KEY and KEY_SALT are used for encrypting card numbers.
-
-### Option A — Docker Compose
-
-**Prerequisites:** Docker + Docker Compose installed.
-
-```bash
-# 1. Clone the project
-git clone <repo-url>
-cd bank_rest
-
-# 2. Start everything (PostgreSQL + app)
-docker-compose up --build
-
-# 3. API is ready at:
-#    http://localhost:8080
-#    Swagger UI: http://localhost:8080/swagger-ui.html
-```
-
-### Option B — Run locally
-
-**Prerequisites:** Java 25+, Maven, PostgreSQL running.
-
-```bash
-# 1. Create database (with DB_USER and DB_PASS from .env file)
-psql -U postgres -c "CREATE DATABASE bankrest;"
-psql -U postgres -c "CREATE USER dbuser WITH PASSWORD 'dbpass';"
-psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE bankrest TO dbuser;"
-
-# 2. Build and run
-mvn spring-boot:run
-
-# 3. API is ready at:
-#    http://localhost:8080
-#    Swagger UI: http://localhost:8080/swagger-ui.html
-```
-
-During the build, an initial user with the ADMIN role is added to the database (Liquibase migration file
-`005-insert-admin.yaml`):
-
-| Username | Password     | Role  |
-|----------|--------------|-------|
-| `admin`  | `Pass_admin` | ADMIN |
-
-After authentication via the /api/auth/login endpoint, a JWT token is returned, which can be used to log into the
-system (in Swagger, use the Authorize button in the upper right corner) and make necessary requests.
-The token lifetime in milliseconds is set in the access-token-expiration parameter in the
-`src/main/resources/application.yml` settings.
----
-
-## 📖 API Reference
-
-Full OpenAPI spec: [`docs/openapi.yaml`](docs/openapi.yaml)
-
-The full list of endpoints is available at the link of Interactive Swagger UI:  
-`http://localhost:8080/swagger-ui.html`
----
-
-The project was published:
-https://github.com/sol1772/bank_rest
-
-**Author: Maksyutov Salavat**
-___
-___
-
-# Система управления банковскими картами (2026)
+# Система управления банковскими картами
 
 REST API, созданный с использованием **Spring Boot 4**, предназначен для управления банковскими картами, пользователями
 и денежными переводами.
@@ -248,8 +120,119 @@ mvn spring-boot:run
 `http://localhost:8080/swagger-ui.html`
 
 ---
-Проект опубликован:
+
+**Автор:**
+Максютов Салават
+
 https://github.com/sol1772/bank_rest
 
-**Автор: Максютов Салават**
-  
+---
+
+# Техническое задание:
+
+<h2>🚀 Разработка Системы Управления Банковскими Картами</h2>
+
+<h2>📁 Стартовая структура</h2>
+  <p>
+    Проектная структура с директориями и описательными файлами (<code>README Controller.md</code>, <code>README Service.md</code> и т.д.) уже подготовлена.<br />
+    Все реализации нужно добавлять <strong>в соответствующие директории</strong>.
+  </p>
+  <p>
+    После завершения разработки <strong>временные README-файлы нужно удалить</strong>, чтобы они не попадали в итоговую сборку.
+  </p>
+
+<h2>📝 Описание задачи</h2>
+  <p>Разработать backend-приложение на Java (Spring Boot) для управления банковскими картами:</p>
+  <ul>
+    <li>Создание и управление картами</li>
+    <li>Просмотр карт</li>
+    <li>Переводы между своими картами</li>
+  </ul>
+
+<h2>💳 Атрибуты карты</h2>
+  <ul>
+    <li>Номер карты (зашифрован, отображается маской: <code>**** **** **** 1234</code>)</li>
+    <li>Владелец</li>
+    <li>Срок действия</li>
+    <li>Статус: Активна, Заблокирована, Истек срок</li>
+    <li>Баланс</li>
+  </ul>
+
+<h2>🧾 Требования</h2>
+
+<h3>✅ Аутентификация и авторизация</h3>
+  <ul>
+    <li>Spring Security + JWT</li>
+    <li>Роли: <code>ADMIN</code> и <code>USER</code></li>
+  </ul>
+
+<h3>✅ Возможности</h3>
+<strong>Администратор:</strong>
+  <ul>
+    <li>Создаёт, блокирует, активирует, удаляет карты</li>
+    <li>Управляет пользователями</li>
+    <li>Видит все карты</li>
+  </ul>
+
+<strong>Пользователь:</strong>
+  <ul>
+    <li>Просматривает свои карты (поиск + пагинация)</li>
+    <li>Запрашивает блокировку карты</li>
+    <li>Делает переводы между своими картами</li>
+    <li>Смотрит баланс</li>
+  </ul>
+
+<h3>✅ API</h3>
+  <ul>
+    <li>CRUD для карт</li>
+    <li>Переводы между своими картами</li>
+    <li>Фильтрация и постраничная выдача</li>
+    <li>Валидация и сообщения об ошибках</li>
+  </ul>
+
+<h3>✅ Безопасность</h3>
+  <ul>
+    <li>Шифрование данных</li>
+    <li>Ролевой доступ</li>
+    <li>Маскирование номеров карт</li>
+  </ul>
+
+<h3>✅ Работа с БД</h3>
+  <ul>
+    <li>PostgreSQL или MySQL</li>
+    <li>Миграции через Liquibase (<code>src/main/resources/db/migration</code>)</li>
+  </ul>
+
+<h3>✅ Документация</h3>
+  <ul>
+    <li>Swagger UI / OpenAPI — <code>docs/openapi.yaml</code></li>
+    <li><code>README.md</code> с инструкцией запуска</li>
+  </ul>
+
+<h3>✅ Развёртывание и тестирование</h3>
+  <ul>
+    <li>Docker Compose для dev-среды</li>
+    <li>Liquibase миграции</li>
+    <li>Юнит-тесты ключевой бизнес-логики</li>
+  </ul>
+
+<h2>📊 Оценка</h2>
+  <ul>
+    <li>Соответствие требованиям</li>
+    <li>Чистота архитектуры и кода</li>
+    <li>Безопасность</li>
+    <li>Обработка ошибок</li>
+    <li>Покрытие тестами</li>
+    <li>ООП и уровни абстракции</li>
+  </ul>
+
+<h2>💡 Технологии</h2>
+  <p>
+    Java 17+, Spring Boot, Spring Security, Spring Data JPA, PostgreSQL/MySQL, Liquibase, Docker, JWT, Swagger (OpenAPI)
+  </p>
+
+<h2> 📤 Формат сдачи</h2>
+<p>
+Весь код и изменения принимаются только через git-репозиторий с открытым доступом к проекту. Отправка файлов в любом виде не принимается.
+  </p>
+

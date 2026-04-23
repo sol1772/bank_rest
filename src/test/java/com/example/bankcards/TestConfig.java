@@ -17,28 +17,28 @@ import org.springframework.context.annotation.Bean;
 @TestConfiguration
 public class TestConfig {
     @Bean
-    public UserService userService() {
-        return Mockito.mock(UserService.class);
+    public UserServiceImpl userService() {
+        return Mockito.mock(UserServiceImpl.class);
     }
 
     @Bean
-    public CardService cardService() {
-        return Mockito.mock(CardService.class);
+    public CardServiceImpl cardService() {
+        return Mockito.mock(CardServiceImpl.class);
     }
 
     @Bean
-    public BankTransactionService bankTransactionService() {
-        return Mockito.mock(BankTransactionService.class);
+    public BankTransactionServiceImpl bankTransactionService() {
+        return Mockito.mock(BankTransactionServiceImpl.class);
     }
 
     @Bean
-    public CardBlockingRequestService blockingRequestService() {
-        return Mockito.mock(CardBlockingRequestService.class);
+    public CardBlockingRequestServiceImpl blockingRequestService() {
+        return Mockito.mock(CardBlockingRequestServiceImpl.class);
     }
 
     @Bean
-    public AuthService authService() {
-        return Mockito.mock(AuthService.class);
+    public AuthServiceImpl authService() {
+        return Mockito.mock(AuthServiceImpl.class);
     }
 
     @Bean

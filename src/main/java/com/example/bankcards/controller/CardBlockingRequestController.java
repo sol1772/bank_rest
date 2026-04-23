@@ -11,6 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * REST controller for managing card-blocking requests.
+ * Accessible only for ADMIN unless specified otherwise.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/requests/block")

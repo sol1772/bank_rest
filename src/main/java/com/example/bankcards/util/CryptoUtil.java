@@ -45,6 +45,13 @@ public final class CryptoUtil {
         return initializationVector;
     }
 
+    /**
+     * Encrypts sensitive card data using AES-GCM.
+     *
+     * @param cardNumber raw card number
+     * @param iv         initialization vector (must be 12 bytes)
+     * @return Base64 encoded encrypted value
+     */
     public String encrypt(String cardNumber, byte[] iv) {
         try {
             Cipher cipher = Cipher.getInstance(ALGORITHM);

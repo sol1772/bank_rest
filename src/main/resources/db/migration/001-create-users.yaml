@@ -2,6 +2,14 @@ databaseChangeLog:
   - changeSet:
       id: 001-create-users
       author: sol
+
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - tableExists:
+                tableName: users
+
       changes:
         - createTable:
             tableName: users
@@ -11,17 +19,20 @@ databaseChangeLog:
                   type: BIGSERIAL
                   constraints:
                     primaryKey: true
+
               - column:
                   name: username
                   type: VARCHAR(50)
                   constraints:
                     nullable: false
                     unique: true
+
               - column:
                   name: password_hash
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
+
               - column:
                   name: role
                   type: VARCHAR(20)

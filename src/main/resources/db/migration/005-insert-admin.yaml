@@ -2,6 +2,14 @@ databaseChangeLog:
   - changeSet:
       id: 002-insert-admin
       author: sol
+
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+          - sqlCheck:
+              expectedResult: 1
+              sql: SELECT COUNT(*) FROM users WHERE username = 'admin'
+
       # Default admin: username=admin, password=Pass_admin (bcrypt)
       changes:
         - insert:

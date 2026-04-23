@@ -24,6 +24,10 @@ import java.util.Optional;
 
 import static com.example.bankcards.util.ErrorsUtil.returnErrorsToClient;
 
+/**
+ * REST controller for managing cards.
+ * Accessible only for ADMIN unless specified otherwise.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/cards")

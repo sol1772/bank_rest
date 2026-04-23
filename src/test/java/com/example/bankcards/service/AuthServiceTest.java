@@ -38,7 +38,7 @@ class AuthServiceTest {
     private CustomUserDetailsService userDetailsService;
 
     @InjectMocks
-    private AuthService authService;
+    private AuthServiceImpl authService;
 
     @Test
     @DisplayName("login: should authenticate and return JWT")

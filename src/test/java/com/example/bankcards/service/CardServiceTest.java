@@ -33,7 +33,7 @@ class CardServiceTest {
     private CryptoUtil cryptoUtil;
 
     @InjectMocks
-    private CardService cardService;
+    private CardServiceImpl cardService;
 
     @Test
     void createCard_shouldCreateCardSuccessfully() {

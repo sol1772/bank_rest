@@ -3,6 +3,13 @@ databaseChangeLog:
       id: 003-create-bank-transactions
       author: sol
 
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: HALT
+        - not:
+            - tableExists:
+                tableName: bank_transactions
+
       changes:
         - createTable:
             tableName: bank_transactions

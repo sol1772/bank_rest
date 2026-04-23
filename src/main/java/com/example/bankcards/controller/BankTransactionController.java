@@ -24,6 +24,10 @@ import java.util.UUID;
 
 import static com.example.bankcards.util.ErrorsUtil.returnErrorsToClient;
 
+/**
+ * REST controller for managing bank transactions.
+ * Accessible only for ADMIN unless specified otherwise.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/transactions")
@@ -71,7 +75,7 @@ public class BankTransactionController {
             returnErrorsToClient(bindingResult);
         }
 
-        bankTransactionService.fundTransfer(transaction, fromCard.getId(), toCard.getId(), amount);
+        bankTransactionService.transferFunds(transaction, fromCard.getId(), toCard.getId(), amount);
         return ResponseEntity.noContent().build();
     }
 }
